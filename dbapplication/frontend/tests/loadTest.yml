@@ -1,0 +1,9 @@
+config:
+  target: 'http://localhost:3000'  # Replace with your backend URL
+  phases:
+    - duration: 60
+      arrivalRate: 5  # 5 users per second
+scenarios:
+  - flow:
+      - get:
+          url: "/users"  # Replace with the API endpoint for getting users
