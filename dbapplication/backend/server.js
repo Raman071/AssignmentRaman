@@ -1,70 +1,43 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
-
 const app = express();
 const port = 3000;
 
-app.use(cors());  // Enable CORS
-app.use(express.json());  // For parsing application/json
-app.use(express.static('public')); // Serve static files from 'public' folder
+// Middleware
+app.use(cors());
+app.use(express.json()); // To parse JSON bodies
 
-// Connect to SQLite database
-let db = new sqlite3.Database('./mydatabase.db', (err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log('Connected to the mydatabase.db SQLite database.');
-});
+// Simulated user data (You can replace this with database logic)
+let users = [
+  { id: 1, name: "John Doe", email: "john@example.com", age: 30 },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", age: 25 },
+];
 
-// Create table if not exists
-db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT,
-    age INTEGER
-)`, (err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log('Users table created or already exists.');
-});
-
-// Endpoint to get all users
+// GET /users - Get all users
 app.get('/users', (req, res) => {
-    db.all("SELECT * FROM users", [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);  // Send the users as a JSON response
-    });
+  res.json(users);
 });
 
-// Endpoint to add a new user
+// POST /users - Add a new user
 app.post('/users', (req, res) => {
-    const { name, email, age } = req.body;
-    const query = `INSERT INTO users (name, email, age) VALUES (?, ?, ?)`;
-    db.run(query, [name, email, age], function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ id: this.lastID, name, email, age });
-    });
+  const { name, email, age } = req.body;
+
+  // Create a new user object
+  const newUser = {
+    id: users.length + 1, // Simple id generation
+    name,
+    email,
+    age,
+  };
+
+  // Add the new user to the users array
+  users.push(newUser);
+
+  // Send the newly created user as the response
+  res.status(201).json(newUser);
 });
 
-// Endpoint to delete a user by ID
-app.delete('/users/:id', (req, res) => {
-    const { id } = req.params;
-    const query = `DELETE FROM users WHERE id = ?`;
-    db.run(query, [id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: `User with ID ${id} deleted.` });
-    });
-});
-
-// Start server
+// Start the server
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server is running at http://localhost:${port}`);
 });
